@@ -74,10 +74,30 @@ class ShowWeather extends ConsumerWidget {
         if (weather == null) {
           return const SelectCity();
         }
-        return ListTile(
-          title: Text(weather.name),
-          subtitle: Text('Temperature: ${weather.temp}°C'),
-          leading: Icon(Icons.wb_sunny),
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(Icons.wb_sunny, size: 100.0, color: Colors.yellow),
+              SizedBox(height: 20.0),
+              Text(
+                'Weather in ${weather.name}',
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'Temperature: ${weather.temp}°C',
+                style: TextStyle(fontSize: 20.0),
+              ),
+              Text(
+                weather.country,
+                style: TextStyle(fontSize: 44.0, fontStyle: FontStyle.italic),
+              ),
+              Image.network(
+                'https://openweathermap.org/img/wn/${weather.icon}@2x.png',
+              ),
+            ],
+          ),
         );
       },
       error: (error, stackTrace) {
