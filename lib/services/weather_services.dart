@@ -1,0 +1,58 @@
+import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:weather_riverpod_app/constants/constants.dart';
+import 'package:weather_riverpod_app/exeptions/weather_exeptions.dart';
+import 'package:weather_riverpod_app/models/current_weather/current_weather.dart';
+import 'package:weather_riverpod_app/models/direct_geocodign/direct_geocodign.dart';
+import 'package:weather_riverpod_app/services/dio_error_handler.dart';
+
+class WeatherApiServices {
+  final Dio _dio;
+  const WeatherApiServices({required Dio dio}) : _dio = dio;
+
+  Future<DirectGeocodign> fetchDirectGeocoding({required String city}) async {
+    try {
+      final Response response = await _dio.get(
+        '/geo/1.0/direct',
+        queryParameters: {
+          'q': city,
+          'limit': kLimit,
+          'appid': dotenv.env['APPID'],
+        },
+      );
+      if (response.statusCode != 200) {
+        throw dioErrorHandler(response);
+      }
+      if (response.data.isEmpty) {
+        throw WeatherExeptions('Cannot get the location of $city');
+      }
+      final directGeocodign = DirectGeocodign.fromJson(response.data[0]);
+      return directGeocodign;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<CurrentWeather> fetchCurrentWeather(
+    DirectGeocodign directGeocoding,
+  ) async {
+    try {
+      final Response response = await _dio.get(
+        '/data/2.5/weather',
+        queryParameters: {
+          'lat': '${directGeocoding.lat}',
+          'lon': '${directGeocoding.lon}',
+          'units': kUnits,
+          'appid': dotenv.env['APPID'],
+        },
+      );
+      if (response.statusCode != 200) {
+        throw dioErrorHandler(response);
+      }
+      final currentWeather = CurrentWeather.fromJson(response.data);
+      return currentWeather;
+    } catch (e) {
+      rethrow;
+    }
+  }
+}
