@@ -13,7 +13,6 @@ class Weather extends _$Weather {
     ref.onDispose(() {
       print('WeatherProvider disposed');
     });
-
     return Future<WeatherEntity?>.value(null);
   }
 
@@ -26,19 +25,19 @@ class Weather extends _$Weather {
       final CurrentWeather currentWeather = await weatherRepository
           .fetchWeather(city: city);
       print('currentWeather: $currentWeather');
-      WeatherMapper.weatherMapper(currentWeather);
+      return WeatherMapper.weatherMapper(currentWeather);
     });
   }
 }
 
-@Riverpod(keepAlive: true)
-Future<List<WeatherEntity?>> weatherEntity(WeatherEntityRef ref) async {
-  ref.onDispose(() {
-    print('WeatherEntityProvider disposed');
-  });
-  final weatherState = await ref.watch(weatherProvider.future);
-  return [weatherState];
-}
+// @Riverpod(keepAlive: true)
+// Future<List<WeatherEntity?>> weatherEntity(WeatherEntityRef ref) async {
+//   ref.onDispose(() {
+//     print('WeatherEntityProvider disposed');
+//   });
+//   final weatherState = await ref.watch(weatherProvider.future);
+//   return [weatherState];
+// }
 
 // @riverpod
 // FutureOr<void> weather(WeatherRef ref, {required String city}) async {
