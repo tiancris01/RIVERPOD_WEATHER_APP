@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../entities/weather/weather_entity.dart';
+import 'package:weather_riverpod_app/extesions/async_value_xx.dart';
 import '../../models/custom_error/custom_error.dart';
 
 import 'providers/weather_provider.dart';
@@ -65,49 +65,31 @@ class ShowWeather extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(weatherEntityProvider);
+    final state = ref.watch(weatherProvider);
     print('*** ShowWeather build called');
-    // print(state.toStr);
-    // print(state.props);
+    print(state.toStr);
+    print(state.props);
     return state.when(
-      skipError: true,
-      data: (List<WeatherEntity?> cityWeatherList) {
-        print('*** in data callback');
-        if (cityWeatherList.isEmpty && cityWeatherList.first == null) {
+      data: (weather) {
+        if (weather == null) {
           return const SelectCity();
         }
-
-        return ListView.builder(
-          itemCount: cityWeatherList.length,
-          itemBuilder: (context, index) {
-            final weather = cityWeatherList[index];
-            if (weather == null) {
-              return const EmptyListTile();
-            }
-            return ListTile(
-              title: Text(weather.name),
-              subtitle: Text('Temperature: ${weather.temp}°C'),
-              leading: Icon(Icons.wb_sunny),
-            );
-          },
+        return ListTile(
+          title: Text(weather.name),
+          subtitle: Text('Temperature: ${weather.temp}°C'),
+          leading: Icon(Icons.wb_sunny),
         );
       },
       error: (error, stackTrace) {
-        print('*** in error callback');
-
-        if (state.value == null) {
-          return const SelectCity();
-        }
-        return Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+        if (error is CustomError) {
+          return Center(
             child: Text(
-              (error as CustomError).errMsg,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18.0),
+              error.errMsg,
+              style: TextStyle(color: Colors.red, fontSize: 18.0),
             ),
-          ),
-        );
+          );
+        }
+        return Center(child: Text('An unexpected error occurred'));
       },
       loading: () => const Center(child: CircularProgressIndicator()),
     );

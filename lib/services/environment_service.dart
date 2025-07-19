@@ -15,9 +15,9 @@ class EnvironmentService {
   }
 
   // API Configuration
-  String get apiKey => dotenv.env['API_KEY'] ?? '';
-  String get apiHost => dotenv.env['API_HOST'] ?? 'api.openweathermap.org';
-  String get iconHost => dotenv.env['ICON_HOST'] ?? 'openweathermap.org';
+  String get apiKey => dotenv.env['APPID'] ?? '';
+  String get apiHost =>
+      dotenv.env['WEATHER_API_BASE_URL'] ?? 'api.openweathermap.org';
 
   // API Settings
   String get units => dotenv.env['UNITS'] ?? 'metric';

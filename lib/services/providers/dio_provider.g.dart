@@ -25,7 +25,7 @@ final environmentServiceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef EnvironmentServiceRef = AutoDisposeProviderRef<EnvironmentService>;
-String _$dioHash() => r'edffda42997731b326893f3cee7e7325e68cabc0';
+String _$dioHash() => r'4bb49e54db677fa1af6f82853d3cb27021a68b01';
 
 /// See also [dio].
 @ProviderFor(dio)

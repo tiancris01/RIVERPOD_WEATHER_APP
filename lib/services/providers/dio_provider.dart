@@ -15,6 +15,9 @@ EnvironmentService environmentService(Ref ref) {
 Dio dio(Ref ref) {
   final envService = ref.watch(environmentServiceProvider);
   final baseUrl = envService.apiHost; // Use the apiHost from EnvironmentService
-  final options = BaseOptions(baseUrl: 'https://$baseUrl');
+  final options = BaseOptions(
+    baseUrl: 'https://$baseUrl',
+    queryParameters: {'appid': envService.apiKey, 'limit': envService.limit},
+  );
   return Dio(options);
 }
