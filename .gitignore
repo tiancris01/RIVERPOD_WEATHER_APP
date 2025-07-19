@@ -43,3 +43,23 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment files - Keep sensitive data secure
+# Include all .env files except the example file
+env/
+/env/*
+!/env/.env.example
+
+# Alternative patterns for safety
+.env
+.env.*
+*.env
+!.env.example
+
+# Specific environment files
+/env/.env.qa
+/env/.env.dev
+/env/.env.prod
+/env/.env.stage
+
+
