@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../entities/weather/weather_entity.dart';
 import '../../models/custom_error/custom_error.dart';
 
-import '../../extesions/async_value_xx.dart';
 import 'providers/weather_provider.dart';
 import '../search/search_view.dart';
 
@@ -61,60 +60,42 @@ class _HomePageViewState extends ConsumerState<HomePageView> {
   }
 }
 
-class ShowWeather extends ConsumerStatefulWidget {
+class ShowWeather extends ConsumerWidget {
   const ShowWeather({super.key});
 
   @override
-  ConsumerState<ShowWeather> createState() => _ShowWeatherState();
-}
-
-class _ShowWeatherState extends ConsumerState<ShowWeather> {
-  List<WeatherEntity?> appWeatherList = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.weatherState.when(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(weatherEntityProvider);
+    print('*** ShowWeather build called');
+    // print(state.toStr);
+    // print(state.props);
+    return state.when(
       skipError: true,
-      data: (List<WeatherEntity?> weatherEntities) {
+      data: (List<WeatherEntity?> cityWeatherList) {
         print('*** in data callback');
-        if (weatherEntities.isEmpty) {
+        if (cityWeatherList.isEmpty && cityWeatherList.first == null) {
           return const SelectCity();
         }
-        appWeatherList = weatherEntities.map((e) => e).toList();
+
         return ListView.builder(
-          itemCount: appWeatherList.length,
+          itemCount: cityWeatherList.length,
           itemBuilder: (context, index) {
+            final weather = cityWeatherList[index];
+            if (weather == null) {
+              return const EmptyListTile();
+            }
             return ListTile(
-              title: Text(appWeatherList[index]?.name ?? 'Unknown City'),
-              subtitle: Text('Temperature: ${appWeatherList[index]?.temp}°C'),
+              title: Text(weather.name),
+              subtitle: Text('Temperature: ${weather.temp}°C'),
               leading: Icon(Icons.wb_sunny),
             );
           },
         );
       },
-
-      /* (CurrentWeather? weather) {
-        print('*** in data callback');
-        if (weather != null) {
-          final WeatherEntity appWeather = WeatherMapper.weatherMapper(weather);
-          appWeatherList.add(appWeather);
-          return ListView.builder(
-            itemCount: appWeatherList.length,
-            itemBuilder: (context, index) {
-              return ListTile(
-                title: Text(appWeatherList[index]?.name ?? 'Unknown City'),
-                subtitle: Text('Temperature: ${appWeatherList[index]?.temp}°C'),
-                leading: Icon(Icons.wb_sunny),
-              );
-            },
-          );
-        }
-        return const SelectCity();
-      }, */
       error: (error, stackTrace) {
-        print('*** in data callback');
+        print('*** in error callback');
 
-        if (widget.weatherState.value == null) {
+        if (state.value == null) {
           return const SelectCity();
         }
         return Center(
@@ -140,6 +121,19 @@ class SelectCity extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: Text('Select a city', style: TextStyle(fontSize: 20.0)),
+    );
+  }
+}
+
+class EmptyListTile extends StatelessWidget {
+  const EmptyListTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ListTile(
+      title: Text('No weather data available'),
+      subtitle: Text('Please select a city to get the weather information.'),
+      leading: Icon(Icons.cancel_presentation),
     );
   }
 }
