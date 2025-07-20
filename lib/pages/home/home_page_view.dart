@@ -93,9 +93,6 @@ class ShowWeather extends ConsumerWidget {
                 weather.country,
                 style: TextStyle(fontSize: 44.0, fontStyle: FontStyle.italic),
               ),
-              Image.network(
-                'https://openweathermap.org/img/wn/${weather.icon}@2x.png',
-              ),
             ],
           ),
         );
