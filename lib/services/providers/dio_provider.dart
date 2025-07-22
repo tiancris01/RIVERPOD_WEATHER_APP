@@ -18,6 +18,9 @@ Dio dio(Ref ref) {
   final options = BaseOptions(
     baseUrl: 'https://$baseUrl',
     queryParameters: {'appid': envService.apiKey, 'limit': envService.limit},
+    connectTimeout: Duration(seconds: 30),
+    receiveTimeout: Duration(seconds: 30),
+    sendTimeout: Duration(seconds: 30),
   );
   return Dio(options);
 }

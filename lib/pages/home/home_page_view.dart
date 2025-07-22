@@ -15,29 +15,34 @@ class HomePageView extends ConsumerStatefulWidget {
 
 class _HomePageViewState extends ConsumerState<HomePageView> {
   String? _city;
+  bool _isLoadingNewCity = false;
+
+  Future<void> _addCity(String city) async {
+    setState(() {
+      _isLoadingNewCity = true;
+    });
+
+    try {
+      await ref.read(weatherProvider.notifier).addCity(city);
+    } finally {
+      setState(() {
+        _isLoadingNewCity = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // ref.listen<AsyncValue<WeatherEntity?>>>(weatherProvider, (
-    //   previous,
-    //   next,
-    // ) {
-    //   next.whenOrNull(
-    //     error: (error, stackTrace) {
-    //       showDialog(
-    //         context: context,
-    //         builder: (BuildContext context) {
-    //           return AlertDialog(content: Text((error as CustomError).errMsg));
-    //         },
-    //       );
-    //     },
-    //   );
-    // });
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home page'),
+        title: Text('Weather Cities'),
         actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+            onPressed: () {
+              ref.read(weatherProvider.notifier).clearAll();
+            },
+          ),
           IconButton(
             icon: Icon(Icons.search),
             onPressed: () async {
@@ -49,52 +54,82 @@ class _HomePageViewState extends ConsumerState<HomePageView> {
                 ),
               );
               if (_city != null) {
-                ref.read(weatherProvider.notifier).fetchWeather(city: _city!);
+                _addCity(_city!);
               }
             },
           ),
         ],
       ),
-      body: ShowWeather(),
+      body: ShowWeather(isLoadingNewCity: _isLoadingNewCity),
     );
   }
 }
 
-class ShowWeather extends ConsumerWidget {
-  const ShowWeather({super.key});
+class ShowWeather extends ConsumerStatefulWidget {
+  final bool isLoadingNewCity;
+
+  const ShowWeather({super.key, this.isLoadingNewCity = false});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShowWeather> createState() => _ShowWeatherState();
+}
+
+class _ShowWeatherState extends ConsumerState<ShowWeather> {
+  ScrollController _scrollController = ScrollController();
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(weatherProvider);
     print('*** ShowWeather build called');
     print(state.toStr);
     print(state.props);
     return state.when(
       data: (weather) {
-        if (weather == null) {
+        if (weather.isEmpty && !widget.isLoadingNewCity) {
           return const SelectCity();
         }
-        return Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Icon(Icons.wb_sunny, size: 100.0, color: Colors.yellow),
-              SizedBox(height: 20.0),
-              Text(
-                'Weather in ${weather.name}',
-                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+
+        // Add loading item if loading new city
+        final itemCount = weather.length + (widget.isLoadingNewCity ? 1 : 0);
+
+        return ListView.builder(
+          controller: _scrollController,
+          itemCount: itemCount,
+          itemBuilder: (context, index) {
+            // Show loading tile at the end
+            if (index == weather.length && widget.isLoadingNewCity) {
+              return const LoadingListTile();
+            }
+
+            final weatherEntity = weather[index];
+            return Dismissible(
+              key: Key('${weatherEntity.name}_${weatherEntity.country}_$index'),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) {
+                ref.read(weatherProvider.notifier).removeCity(index);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('${weatherEntity.name} removed')),
+                );
+              },
+              background: Container(
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                padding: const EdgeInsets.only(right: 20),
+                child: const Icon(Icons.delete, color: Colors.white),
               ),
-              Text(
-                'Temperature: ${weather.temp}°C',
-                style: TextStyle(fontSize: 20.0),
+              child: ListTile(
+                title: Text(weatherEntity.name),
+                subtitle: Text('${weatherEntity.temp}°C'),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.blue,
+                  backgroundImage: NetworkImage(
+                    'https://openweathermap.org/img/wn/${weatherEntity.icon}@2x.png',
+                  ),
+                ),
+                trailing: Text(weatherEntity.country),
               ),
-              Text(
-                weather.country,
-                style: TextStyle(fontSize: 44.0, fontStyle: FontStyle.italic),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
       error: (error, stackTrace) {
@@ -120,6 +155,23 @@ class SelectCity extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Center(
       child: Text('Select a city', style: TextStyle(fontSize: 20.0)),
+    );
+  }
+}
+
+class LoadingListTile extends StatelessWidget {
+  const LoadingListTile({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const ListTile(
+      leading: SizedBox(
+        width: 40,
+        height: 40,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      title: Text('Loading...'),
+      subtitle: Text('Fetching weather data'),
     );
   }
 }
