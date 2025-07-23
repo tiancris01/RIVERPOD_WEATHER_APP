@@ -1,55 +1,42 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:weather_riverpod_app/models/current_weather/current_weather.dart';
-import 'package:weather_riverpod_app/models/mappers/weather_mapper.dart';
-import 'package:weather_riverpod_app/repositories/providers/weather_repository.dart';
-import 'package:weather_riverpod_app/entities/weather/weather_entity.dart';
+
+import '../../../models/mappers/weather_mapper.dart';
+import '../../../repositories/providers/weather_repository.dart';
+import '../../../entities/weather/weather_entity.dart';
 
 part 'weather_provider.g.dart';
 
 @riverpod
 class Weather extends _$Weather {
   @override
-  FutureOr<List<WeatherEntity>> build() {
-    print('[WeatherProvider initialized]');
-    ref.onDispose(() {
-      print('[WeatherProvider] disposed');
-    });
-    return [];
-  }
+  FutureOr<List<WeatherEntity>> build() => [];
 
   Future<void> addCity(String city) async {
     final currentList = state.valueOrNull ?? [];
 
-    // Check if city already exists
-    final cityExists = currentList.any(
-      (weather) =>
-          weather.name.toLowerCase().trim() == city.toLowerCase().trim(),
-    );
-
-    if (cityExists) return;
+    if (cityExists(city, currentList)) return;
 
     state = await AsyncValue.guard(() async {
-      final weatherRepository = ref.watch(weatherRepositoryProvider);
-      final CurrentWeather currentWeather = await weatherRepository
-          .fetchWeather(city: city);
-      print('currentWeather: $currentWeather');
-      final weatherEntity = WeatherMapper.weatherMapper(currentWeather);
-      return [...currentList, weatherEntity];
+      final repo = ref.read(weatherRepositoryProvider);
+      final weather = await repo.fetchWeather(city: city);
+      final entity = WeatherMapper.weatherMapper(weather);
+      return [...currentList, entity];
     });
   }
 
   void removeCity(int index) {
-    final currentList = state.valueOrNull ?? [];
-    if (index >= 0 && index < currentList.length) {
-      final updatedList = [...currentList];
-      updatedList.removeAt(index);
-      state = AsyncValue.data(updatedList);
-    }
+    final list = state.valueOrNull;
+    if (list == null || index < 0 || index >= list.length) return;
+    state = AsyncValue.data([...list..removeAt(index)]);
   }
 
-  void clearAll() {
-    state = const AsyncValue.data([]);
-  }
+  void clearAll() => state = const AsyncValue.data([]);
+
+  // Check if city already exists
+  bool cityExists(String city, List<WeatherEntity> list) => list.any(
+    (weather) =>
+        weather.cityName.trim().toLowerCase() == city.trim().toLowerCase(),
+  );
 }
 
 // Loading state provider
@@ -58,39 +45,5 @@ class LoadingState extends _$LoadingState {
   @override
   bool build() => false;
 
-  void setLoading(bool loading) {
-    state = loading;
-  }
+  void setLoading(bool loading) => state = loading;
 }
-
-// @Riverpod(keepAlive: true)
-// Future<List<WeatherEntity?>> weatherEntity(WeatherEntityRef ref) async {
-//   ref.onDispose(() {
-//     print('WeatherEntityProvider disposed');
-//   });
-//   final weatherState = await ref.watch(weatherProvider.future);
-//   return [weatherState];
-// }
-
-// @riverpod
-// FutureOr<void> weather(WeatherRef ref, {required String city}) async {
-//   final weatherRepository = ref.watch(weatherRepositoryProvider);
-//   final CurrentWeather currentWeather = await weatherRepository.fetchWeather(
-//     city: city,
-//   );
-//   print('currentWeather: $currentWeather');
-//   final WeatherEntity state = WeatherMapper.weatherMapper(currentWeather);
-//   ref.read(weatherEntityProviderProvider.notifier).addWeather(state);
-// }
-
-// @Riverpod(keepAlive: true)
-// class WeatherEntityProvider extends _$WeatherEntityProvider {
-//   @override
-//   List<WeatherEntity> build() {
-//     return [];
-//   }
-
-//   void addWeather(WeatherEntity weather) {
-//     state = [...state, weather];
-//   }
-// }
