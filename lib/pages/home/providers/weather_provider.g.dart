@@ -6,7 +6,7 @@ part of 'weather_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$weatherHash() => r'8b35feaee57c951280bdd8698738114c5cf2b515';
+String _$weatherHash() => r'bff12c9f8607a7fb184a028ed000e6476d62a414';
 
 /// See also [Weather].
 @ProviderFor(Weather)
@@ -22,7 +22,7 @@ final weatherProvider =
     );
 
 typedef _$Weather = AutoDisposeAsyncNotifier<List<WeatherEntity>>;
-String _$loadingStateHash() => r'fa7dcdcdae0b8efad1e71fd9eabd5217f17237ab';
+String _$loadingStateHash() => r'b7e767c6ce631c496a35c823ebf201b65412ebf0';
 
 /// See also [LoadingState].
 @ProviderFor(LoadingState)

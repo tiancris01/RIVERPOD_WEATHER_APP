@@ -7,7 +7,7 @@ class WeatherMapper {
       country: cuarrentWeather.sys.country,
       description: cuarrentWeather.weather[0].description,
       icon: cuarrentWeather.weather[0].icon,
-      name: cuarrentWeather.name,
+      cityName: cuarrentWeather.name,
       temp: cuarrentWeather.main.temp,
       tempMax: cuarrentWeather.main.tempMax,
       tempMin: cuarrentWeather.main.tempMin,
